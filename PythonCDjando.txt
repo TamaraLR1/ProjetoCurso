@@ -1,0 +1,139 @@
+comandos:
+
+1 - py -m venv venv
+2 - ./venv/Scripts/activate
+
+3 - Digitar no Vscode CRTL + SHIFT + P para ativar o interpretador da venv
+
+
+4 - criar um .gitignore colocando no arquivo venv/
+
+
+5 - pip install django djangorestframework django-cors-headers
+
+6 - pip freeze
+
+7 - pip freeze > requirements.txt 
+
+8 - Para iniciar o projeto Django, digite no terminal:
+	django-admin startproject api_root .
+
+9 - py manage.py startapp api_rest
+
+10 - Fazer a configuração em settings.py dentro do api_root 
+
+INSTALLED_APPS = [
+	'rest_framework',
+    	'corsheaders',
+    	'api_rest',
+]
+
+MIDDLEWARE = [
+	'corsheaders.middleware.CorsMiddleware',
+]
+
+#CORS_ALLOW_ORIGINS_ALL = True
+
+CORS_ALLOW_ORIGINS = [
+    'http://localhost:8080',
+]
+
+
+11 - Criar os modelos no api_rest
+
+12 - py manage.py makemigrations
+
+13 - py manage.py migrate
+
+14 - No arquivo admin.py em api_rest, criar o registro dos modelos
+
+# Register your models here.
+from .models import Aluno, Curso, Matricula
+
+
+admin.site.register(Aluno)
+admin.site.register(Curso)
+admin.site.register(Matricula)
+
+
+15 - Criar um superusuario para editar os dados dos Alunos por exemplo
+	
+	py manage.py createsuperuser
+
+16 - rodar o servidor
+	py manage.py runserver
+
+17 - Criar um arquivo serializers.py e colocar os models que gostariamos de serializar para json
+
+from rest_framework import serializers
+
+from .models import Aluno
+from .models import Curso
+from .models import Matricula
+
+class AlunoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Aluno
+        fields = '__all__' 
+
+class CursoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Curso
+        fields = '__all__' 
+
+class MatriculaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Matricula
+        fields = '__all__' 
+
+18 - Necessário criar o método GET em view.py no api_rest
+
+from django.shortcuts import render
+from django.http import HttpRequest, JsonResponse
+
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from rest_framework import status
+
+from .models import Aluno
+from .serializers import AlunoSerializer
+
+import json
+# Create your views here.
+
+
+@api_view(['GET'])
+def get_alunos(request):
+
+    if request.method == 'GET':
+        alunos = Aluno.objects.all()
+        serializer = AlunoSerializer(alunos, many=True)
+        return Response(serializer.data)
+    
+    return Response(status=status.HTTP_400_BAD_REQUEST)
+
+19 - Criar o arquivo urls.py em api_rest
+
+20 - editar o arquivo urls.py em api_root
+
+from django.contrib import admin
+from django.urls import path, include
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('api/', include('api_rest.urls'), name='api_rest_urls')
+]
+
+21 - editar o arquivo urls.py em api_rest
+
+from django.contrib import admin
+from django.urls import path
+
+from . import views
+
+urlpatterns = [
+    path('', views.get_alunos, name='get_all_alunos'),
+]
+
+22 - py manage.py runserver
+
